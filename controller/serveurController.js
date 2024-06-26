@@ -86,6 +86,50 @@ const ServeurController = {
             console.error(error);
             return res.status(500).json({ error: 'Erreur lors du lancement du serveur' });
         }
+    },
+
+    // Reçoit une requête POST d'arrêt du serveur
+    stopServeur: function (req, res) {
+        const { id_serv, client_token } = req.body;
+        const data = Serveur.getServeur(id_serv);
+
+        if (token !== client_token || !client_token) {
+            console.log(`Token invalide : ${token}`);
+            return res.status(401).json({ error: 'Token invalide' });
+        } else {
+            console.log(`Token client valide !`);
+        }
+
+        if (!data) {
+            return res.status(404).json({ error: 'Serveur non trouvé' });
+        }
+
+        try {
+            // Nom du screen à utiliser
+            const screenName = 'serveur';
+        
+            // Vérifie si le serveur est déjà démarré
+            exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
+                if (stdout.includes(screenName)) {
+                    // Arrête le screen
+                    exec(`screen -S ${screenName} -X quit`, (error, stdout, stderr) => {
+                        if (error) {
+                            console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
+                            return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+                        }
+                        console.log(`stdout: ${stdout}`);
+                        console.error(`stderr: ${stderr}`);
+                        return res.status(200).json({ message: 'Serveur arrêté' });
+                    });
+                } else {
+                    console.log(`Le serveur ${data.nom_serv} n'est pas démarré.`);
+                    return res.status(200).json({ message: 'Serveur non démarré' });
+                }
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+        }
     }
 }
 

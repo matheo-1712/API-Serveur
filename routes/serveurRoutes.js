@@ -21,5 +21,8 @@ router.get('/actifs/jeu/:jeu', ServeurController.getServeursActifsByJeu);
 // Reçoit une requête POST de lancement du serveur
 router.post('/start', ServeurController.startServeur);
 
+// Reçoit une requête POST d'arrêt du serveur
+router.post('/stop', ServeurController.stopServeur);
+
 // Export du module
 module.exports = router;

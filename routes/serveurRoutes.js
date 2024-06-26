@@ -24,5 +24,8 @@ router.post('/start', ServeurController.startServeur);
 // Reçoit une requête POST d'arrêt du serveur
 router.post('/stop', ServeurController.stopServeur);
 
+// Reçoit une requête POST d'ajout d'un serveur dans le JSON
+router.post('/add', ServeurController.addServeur);
+
 // Export du module
 module.exports = router;

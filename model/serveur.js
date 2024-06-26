@@ -21,6 +21,7 @@
 const e = require('express');
 
 const Serveur = {
+
     // Récupére les données du serveur depuis le JSON
 
     // Affiche la liste des serveurs
@@ -55,6 +56,15 @@ const Serveur = {
         let data = require('../data/serveurs.json');
         let serveurs = data.filter(serveur => serveur.jeu == jeu && serveur.actif == true);
         return serveurs;
+    },
+
+    // Inscrire des données dans le JSON
+
+    // Ajoute un serveur
+    addServeur: function(serveur) {
+        let data = require('../data/serveurs.json');
+        data.push(serveur);
+        return data;
     },
 }
 

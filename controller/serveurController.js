@@ -58,7 +58,7 @@ const ServeurController = {
 
         try {
             // Nom du screen à utiliser
-            const screenName = 'serveur';
+            const screenName = 'serv-secondaire';
             // Récupère le chemin du script de lancement du serveur
             const path = data.path_serv;
         
@@ -106,7 +106,7 @@ const ServeurController = {
 
         try {
             // Nom du screen à utiliser
-            const screenName = 'serveur';
+            const screenName = 'serv-secondaire';
         
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
@@ -130,7 +130,14 @@ const ServeurController = {
             console.error(error);
             return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
         }
-    }
+    },
+
+    // Ajoute un serveur
+    addServeur: function (req, res) {
+        const serveur = req.body;
+        let data = Serveur.addServeur(serveur);
+        res.json(data);
+    },
 }
 
 module.exports = ServeurController;

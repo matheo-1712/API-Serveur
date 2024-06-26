@@ -35,6 +35,27 @@ const Serveur = {
         let serveur = data.find(serveur => serveur.id_serv == id_serv);
         return serveur;
     },
+
+    // Affiche les serveurs actifs
+    getServeursActifs: function() {
+        let data = require('../data/serveurs.json');
+        let serveurs = data.filter(serveur => serveur.actif == true);
+        return serveurs;
+    },
+
+    // Affiche les serveurs par rapport à un jeu
+    getServeursByJeu: function(jeu) {
+        let data = require('../data/serveurs.json');
+        let serveurs = data.filter(serveur => serveur.jeu == jeu);
+        return serveurs;
+    },
+
+    // Affiche les serveurs Actif par rapport à un jeu
+    getServeursActifsByJeu: function(jeu) {
+        let data = require('../data/serveurs.json');
+        let serveurs = data.filter(serveur => serveur.jeu == jeu && serveur.actif == true);
+        return serveurs;
+    },
 }
 
 module.exports = Serveur;

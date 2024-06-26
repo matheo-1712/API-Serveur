@@ -1,6 +1,7 @@
 [
     {
       "id_serv": "1",
+      "jeu": "Others",
       "nom_serv": "Palworld",
       "modpack": "Palworld",
       "modpack_url": "https://store.steampowered.com/app/1623730/Palworld/",
@@ -14,6 +15,7 @@
     },
     {
       "id_serv": "2",
+      "jeu": "Minecraft",
       "nom_serv": "Nom du Serveur 2",
       "modpack": "Nom du Modpack 2",
       "modpack_url": "http://example.com/modpack2",

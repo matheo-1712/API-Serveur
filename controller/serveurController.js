@@ -20,6 +20,26 @@ const ServeurController = {
         res.json(data);
     },
 
+    // Affiche les serveurs actifs
+    getServeursActifs: function (req, res) {
+        let data = Serveur.getServeursActifs();
+        res.json(data);
+    },
+
+    // Affiche les serveurs par rapport à un jeu
+    getServeursByJeu: function (req, res) {
+        let jeu = req.params.jeu;
+        let data = Serveur.getServeursByJeu(jeu);
+        res.json(data);
+    },
+
+    // Affiche les serveurs Actif par rapport à un jeu
+    getServeursActifsByJeu: function (req, res) {
+        let jeu = req.params.jeu;
+        let data = Serveur.getServeursActifsByJeu(jeu);
+        res.json(data);
+    },
+
     // Reçoit une requête POST de lancement du serveur
     startServeur: function (req, res) {
         const { id_serv, client_token } = req.body;

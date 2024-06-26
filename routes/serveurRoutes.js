@@ -9,6 +9,15 @@ router.get('/', ServeurController.getServeurs);
 // Affiche un serveur
 router.get('/:id_serv', ServeurController.getServeur);
 
+// Affiche les serveurs actifs
+router.get('/actifs', ServeurController.getServeursActifs);
+
+// Affiche les serveurs par rapport à un jeu
+router.get('/jeu/:jeu', ServeurController.getServeursByJeu);
+
+// Affiche les serveurs Actifs par rapport à un jeu
+router.get('/actifs/jeu/:jeu', ServeurController.getServeursActifsByJeu);
+
 // Reçoit une requête POST de lancement du serveur
 router.post('/start', ServeurController.startServeur);
 

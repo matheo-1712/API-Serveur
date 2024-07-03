@@ -8,6 +8,11 @@ const port = 3000;
 app.use(express.json()); // Pour les données JSON
 app.use(express.urlencoded({ extended: true })); // Pour les données URL encodées
 
+// Renvoie si l'API est en ligne
+app.get('/', (req, res) => {
+    res.json({ status: 'API en ligne' });
+});
+
 // Définition des routes
 const serveurRoutes = require('./routes/serveurRoutes');
 app.use('/serveurs', serveurRoutes);

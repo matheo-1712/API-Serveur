@@ -58,6 +58,22 @@ const Serveur = {
         return serveurs;
     },
 
+    // Affiche le serveur principal actuellement actif
+    getServeurPrimaire: function() {
+        let data = require('../data/serveurs.json');
+        let serveurActif = require('../data/actif.json');
+        let serveur = data.find(serveur => serveur.id_serv == serveurActif.primaire);
+        return serveur;
+    },
+
+    // Affiche le serveur secondaire actuellement actif
+    getServeurSecondaire: function() {
+        let data = require('../data/serveurs.json');
+        let serveurActif = require('../data/actif.json');
+        let serveur = data.find(serveur => serveur.id_serv == serveurActif.secondaire);
+        return serveur;
+    },
+
     // Inscrire des données dans le JSON
 
     // Ajoute un serveur

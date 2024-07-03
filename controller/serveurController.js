@@ -40,6 +40,18 @@ const ServeurController = {
         res.json(data);
     },
 
+    // Affiche le serveur principal actuellement actif
+    getServeurPrimaire: function (req, res) {
+        let data = Serveur.getServeurPrimaire();
+        res.json(data);
+    },
+
+    // Affiche le serveur secondaire actuellement actif
+    getServeurSecondaire: function (req, res) {
+        let data = Serveur.getServeurSecondaire();
+        res.json(data);
+    },
+
     // Reçoit une requête POST de lancement du serveur
     startServeur: function (req, res) {
         const { id_serv, client_token } = req.body;

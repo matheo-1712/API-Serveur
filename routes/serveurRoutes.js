@@ -12,6 +12,12 @@ router.get('/:id_serv', ServeurController.getServeur);
 // Affiche les serveurs actifs
 router.get('/actifs', ServeurController.getServeursActifs);
 
+// Affiche le serveur principal actuellement actif
+router.get('/primaire/actif', ServeurController.getServeurPrimaire);
+
+// Affiche le serveur secondaire actuellement actif
+router.get('/secondaire/actif', ServeurController.getServeurSecondaire);
+
 // Affiche les serveurs par rapport à un jeu
 router.get('/jeu/:jeu', ServeurController.getServeursByJeu);
 

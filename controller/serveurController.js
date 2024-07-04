@@ -80,7 +80,7 @@ const ServeurController = {
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {
                     console.log(`Le serveur ${data.nom_serv} est déjà démarré.`);
-                    return res.status(200).json({ message: 'Serveur déjà démarré' });
+                    return res.status(200).json({ message: 'Serveur déjà démarré', status : '0'  });
                 } else {
                     // Exécution du script .sh dans un screen avec un nom spécifique
                     const command = `screen -S ${screenName} -d -m bash -c '${scriptPath}'`;
@@ -92,7 +92,7 @@ const ServeurController = {
                         }
                         console.log(`stdout: ${stdout}`);
                         console.error(`stderr: ${stderr}`);
-                        return res.status(200).json({ message: 'Serveur démarré' });
+                        return res.status(200).json({ message: 'Serveur démarré', status : '1' });
                     });
 
                     // Écrire l'ID du serveur dans le fichier actif.json et dans la données "secondaire": ""

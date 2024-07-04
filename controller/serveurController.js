@@ -2,6 +2,8 @@ const Serveur = require('../model/serveur');
 const { token } = require('../data/token.json');
 const e = require('express');
 const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 // Définir un objet controller
 
@@ -72,8 +74,8 @@ const ServeurController = {
             // Nom du screen à utiliser
             const screenName = 'serv-secondaire';
             // Récupère le chemin du script de lancement du serveur
-            const path = data.path_serv;
-        
+            const scriptPath = data.path_serv;
+
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {
@@ -81,8 +83,8 @@ const ServeurController = {
                     return res.status(200).json({ message: 'Serveur déjà démarré' });
                 } else {
                     // Exécution du script .sh dans un screen avec un nom spécifique
-                    const command = `screen -S ${screenName} -d -m bash -c '${path}'`;
-        
+                    const command = `screen -S ${screenName} -d -m bash -c '${scriptPath}'`;
+
                     exec(command, (error, stdout, stderr) => {
                         if (error) {
                             console.error(`Erreur lors du lancement du serveur : ${error}`);
@@ -92,8 +94,35 @@ const ServeurController = {
                         console.error(`stderr: ${stderr}`);
                         return res.status(200).json({ message: 'Serveur démarré' });
                     });
+
+                    // Écrire l'ID du serveur dans le fichier actif.json et dans la données "secondaire": ""
+                    try {
+                        const dirPath = path.join(__dirname, '../data');
+                        const filePath = path.join(dirPath, 'actif.json');
+
+                        // Check if directory exists, if not create it
+                        if (!fs.existsSync(dirPath)) {
+                            fs.mkdirSync(dirPath, { recursive: true });
+                        }
+
+                        // Check if file exists, if not create it
+                        if (!fs.existsSync(filePath)) {
+                            fs.writeFileSync(filePath, JSON.stringify({ secondaire: '' }, null, 2));
+                        }
+
+                        // Read the JSON file
+                        const actif = require(filePath);
+                        actif.secondaire = id_serv;
+
+                        // Write back to the JSON file
+                        fs.writeFileSync(filePath, JSON.stringify(actif, null, 2));
+                    } catch (error) {
+                        console.error(error);
+                        return res.status(500).json({ error: "Erreur lors de l'écriture du serveur actif" });
+                    }
                 }
             });
+
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Erreur lors du lancement du serveur' });
@@ -119,7 +148,7 @@ const ServeurController = {
         try {
             // Nom du screen à utiliser
             const screenName = 'serv-secondaire';
-        
+
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {

@@ -58,9 +58,14 @@ const ServeurController = {
     startServeur: function (req, res) {
         const { id_serv, client_token } = req.body;
         const data = Serveur.getServeur(id_serv);
+        let screenName = '';
+
+        // Récupère l'ID primaire dans le actif.json
+        const idPrimaire = require('../data/actif.json').primaire;
+
 
         if (token !== client_token || !client_token) {
-            console.log(`Token invalide : ${token}`);
+            console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
             console.log(`Token client valide !`);
@@ -71,8 +76,12 @@ const ServeurController = {
         }
 
         try {
-            // Nom du screen à utiliser
-            const screenName = 'serv-secondaire';
+            if (id_serv == idPrimaire) {
+                screenName = 'serv-primaire';
+            } else {
+                // Nom du screen à utiliser
+                screenName = 'serv-secondaire';
+            }
             // Récupère le chemin du script de lancement du serveur
             const scriptPath = data.path_serv;
 
@@ -80,7 +89,7 @@ const ServeurController = {
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {
                     console.log(`Le serveur ${data.nom_serv} est déjà démarré.`);
-                    return res.status(200).json({ message: 'Serveur déjà démarré', status : '0'  });
+                    return res.status(200).json({ message: 'Serveur déjà démarré', status: '0' });
                 } else {
                     // Exécution du script .sh dans un screen avec un nom spécifique
                     const command = `screen -S ${screenName} -d -m bash -c '${scriptPath}'`;
@@ -92,7 +101,7 @@ const ServeurController = {
                         }
                         console.log(`stdout: ${stdout}`);
                         console.error(`stderr: ${stderr}`);
-                        return res.status(200).json({ message: 'Serveur démarré', status : '1' });
+                        return res.status(200).json({ message: 'Serveur démarré', status: '1' });
                     });
 
                     // Écrire l'ID du serveur dans le fichier actif.json et dans la données "secondaire": ""
@@ -133,9 +142,15 @@ const ServeurController = {
     stopServeur: function (req, res) {
         const { id_serv, client_token } = req.body;
         const data = Serveur.getServeur(id_serv);
+        let screenName = '';
+
+        // Récupère l'ID primaire dans le actif.json
+        const idPrimaire = require('../data/actif.json').primaire;
+
+        // récupère l'ID 
 
         if (token !== client_token || !client_token) {
-            console.log(`Token invalide : ${token}`);
+            console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
             console.log(`Token client valide !`);
@@ -146,9 +161,12 @@ const ServeurController = {
         }
 
         try {
-            // Nom du screen à utiliser
-            const screenName = 'serv-secondaire';
-
+            if (id_serv == idPrimaire) {
+                screenName = 'serv-primaire';
+            } else {
+                // Nom du screen à utiliser
+                screenName = 'serv-secondaire';
+            }
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {

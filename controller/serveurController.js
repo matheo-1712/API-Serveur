@@ -93,7 +93,7 @@ const ServeurController = {
                     return res.status(200).json({ message: 'Serveur déjà démarré', status: '0' });
                 } else {
                     // Exécution du script .sh dans un screen avec un nom spécifique
-                    const command = `screen -S ${screenName} -d -m bash -c '${scriptPath} ${scriptName}'`;
+                    const command = `screen -S ${screenName} -d -m bash -c '${scriptPath}${scriptName}'`;
 
                     exec(command, (error, stdout, stderr) => {
                         if (error) {
@@ -107,6 +107,13 @@ const ServeurController = {
 
                     // Écrire l'ID du serveur dans le fichier actif.json et dans la données "secondaire": ""
                     try {
+
+                        // Vérifie si l'id du serveur est le primaire et si c'est le cas, il ne faut pas écrire dans le secondaire
+                        if (id_serv == idPrimaire) {
+                            return console.log('Le serveur demandé est le serveur primaire, donc pas d\'écriture dans le secondaire');
+                        }
+
+
                         const dirPath = path.join(__dirname, '../data');
                         const filePath = path.join(dirPath, 'actif.json');
 

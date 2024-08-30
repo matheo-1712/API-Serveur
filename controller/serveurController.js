@@ -84,6 +84,7 @@ const ServeurController = {
             }
             // Récupère le chemin du script de lancement du serveur
             const scriptPath = data.path_serv;
+            const scriptName = data.start_script
 
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
@@ -92,7 +93,7 @@ const ServeurController = {
                     return res.status(200).json({ message: 'Serveur déjà démarré', status: '0' });
                 } else {
                     // Exécution du script .sh dans un screen avec un nom spécifique
-                    const command = `screen -S ${screenName} -d -m bash -c '${scriptPath}'`;
+                    const command = `screen -S ${screenName} -d -m bash -c '${scriptPath} ${scriptName}'`;
 
                     exec(command, (error, stdout, stderr) => {
                         if (error) {
@@ -170,21 +171,35 @@ const ServeurController = {
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {
-                    // Arrête le screen
-                    exec(`screen -S ${screenName} -X quit`, (error, stdout, stderr) => {
-                        if (error) {
-                            console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
-                            return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+                        // Vérifie le type de jeu
+                        if (data.jeu == 'Minecraft') {
+
+                            // Envoie la commande stop au serveur
+                            exec(`screen -S ${screenName} -X stuff 'stop^M'`, (error, stdout, stderr) => {
+                                if (error) {
+                                    console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
+                                    return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+                                }
+                                console.log(`stdout: ${stdout}`);
+                                console.error(`stderr: ${stderr}`);
+                                return res.status(200).json({ message: 'Serveur arrêté' });
+                            });
+                        } else {
+                            exec(`screen -S ${screenName} -X quit`, (error, stdout, stderr) => {
+                                if (error) {
+                                    console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
+                                    return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+                                }
+                                console.log(`stdout: ${stdout}`);
+                                console.error(`stderr: ${stderr}`);
+                                return res.status(200).json({ message: 'Serveur arrêté' });
+                            });
                         }
-                        console.log(`stdout: ${stdout}`);
-                        console.error(`stderr: ${stderr}`);
-                        return res.status(200).json({ message: 'Serveur arrêté' });
-                    });
-                } else {
-                    console.log(`Le serveur ${data.nom_serv} n'est pas démarré.`);
-                    return res.status(200).json({ message: 'Serveur non démarré' });
-                }
-            });
+                    } else {
+                        console.log(`Le serveur ${data.nom_serv} n'est pas démarré.`);
+                        return res.status(200).json({ message: 'Serveur non démarré' });
+                    }
+                });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });

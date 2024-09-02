@@ -76,7 +76,10 @@ const Serveur = {
         // Récupère le nombre de joueurs connectés
         getNbJoueurs(ipServPrimaire, portServPrimaire).then(nb_joueurs => {
             serveur.nb_joueurs = nb_joueurs;
-        });;
+            serveur.online = 1;
+        }).catch((error) => {
+            serveur.online = 0;
+        });
 
         // Renvoie le serveur
         return serveur;
@@ -91,6 +94,9 @@ const Serveur = {
         // Récupère le nombre de joueurs connectés
         getNbJoueurs(ipServSecondaire, portServSecondaire).then(nb_joueurs => {
             serveur.nb_joueurs = nb_joueurs;
+            serveur.online = 1;
+        }).catch((error) => {
+            serveur.online = 0;
         });
 
         // Renvoie le serveur

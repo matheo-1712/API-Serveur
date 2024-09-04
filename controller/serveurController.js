@@ -236,6 +236,7 @@ const ServeurController = {
         try {
             // Destructuration des données envoyées dans la requête
             const {
+                client_token,
                 jeu,
                 nom_serv,
                 modpack,
@@ -247,6 +248,15 @@ const ServeurController = {
                 administrateur,
             } = req.body;
     
+
+            // Vérification du token client
+            if (token !== client_token || !client_token) {
+                console.log(`Token invalide : ${client_token}`);
+                return res.status(401).json({ error: 'Token invalide' });
+            } else {
+                console.log(`Token client valide !`);
+            }
+            
             // Récupération des serveurs existants
             const data = Serveur.getServeurs();
             

@@ -178,35 +178,35 @@ const ServeurController = {
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {
-                        // Vérifie le type de jeu
-                        if (data.jeu == 'Minecraft') {
+                    // Vérifie le type de jeu
+                    if (data.jeu == 'Minecraft') {
 
-                            // Envoie la commande stop au serveur
-                            exec(`screen -S ${screenName} -X stuff 'stop^M'`, (error, stdout, stderr) => {
-                                if (error) {
-                                    console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
-                                    return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
-                                }
-                                console.log(`stdout: ${stdout}`);
-                                console.error(`stderr: ${stderr}`);
-                                return res.status(200).json({ message: 'Serveur arrêté' });
-                            });
-                        } else {
-                            exec(`screen -S ${screenName} -X quit`, (error, stdout, stderr) => {
-                                if (error) {
-                                    console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
-                                    return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
-                                }
-                                console.log(`stdout: ${stdout}`);
-                                console.error(`stderr: ${stderr}`);
-                                return res.status(200).json({ message: 'Serveur arrêté' });
-                            });
-                        }
+                        // Envoie la commande stop au serveur
+                        exec(`screen -S ${screenName} -X stuff 'stop^M'`, (error, stdout, stderr) => {
+                            if (error) {
+                                console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
+                                return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+                            }
+                            console.log(`stdout: ${stdout}`);
+                            console.error(`stderr: ${stderr}`);
+                            return res.status(200).json({ message: 'Serveur arrêté' });
+                        });
                     } else {
-                        console.log(`Le serveur ${data.nom_serv} n'est pas démarré.`);
-                        return res.status(200).json({ message: 'Serveur non démarré' });
+                        exec(`screen -S ${screenName} -X quit`, (error, stdout, stderr) => {
+                            if (error) {
+                                console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
+                                return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+                            }
+                            console.log(`stdout: ${stdout}`);
+                            console.error(`stderr: ${stderr}`);
+                            return res.status(200).json({ message: 'Serveur arrêté' });
+                        });
                     }
-                });
+                } else {
+                    console.log(`Le serveur ${data.nom_serv} n'est pas démarré.`);
+                    return res.status(200).json({ message: 'Serveur non démarré' });
+                }
+            });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
@@ -214,11 +214,85 @@ const ServeurController = {
     },
 
     // Ajoute un serveur
+
+    /* Typo d'un json de serveur 
+
+    "id_serv": "0",
+    "jeu": "Minecraft",
+    "nom_serv": "La Vanilla",
+    "modpack": "Minecraft Vanilla",
+    "modpack_url": "https://www.minecraft.net/fr-fr",
+    "embedColor": "#9adfba",
+    "nom_monde": "world",
+    "version_serv": "1.21",
+    "path_serv": "/home/serveurs/minecraft/vanilla/",
+    "start_script": "start.sh",
+    "administrateur": "Azertor",
+    "actif": true
+
+    */
+
     addServeur: function (req, res) {
-        const serveur = req.body;
-        let data = Serveur.addServeur(serveur);
-        res.json(data);
-    },
+        try {
+            // Destructuration des données envoyées dans la requête
+            const {
+                jeu,
+                nom_serv,
+                modpack,
+                modpack_url,
+                embedColor,
+                nom_monde,
+                version_serv,
+                path_serv,
+                administrateur,
+            } = req.body;
+    
+            // Récupération des serveurs existants
+            const data = Serveur.getServeurs();
+            
+            // Gestion du cas où il n'y a pas encore de serveurs
+            const lastId = data.length > 0 ? data[data.length - 1].id_serv : 0;
+            const newId = parseInt(lastId) + 1;
+
+            // Données par défaut
+            const defaultActif = true;
+            const defaultStartScript = 'start.sh';
+            const defaultNomMonde = 'world';
+    
+            // Création du nouvel objet serveur
+            const serveur = {
+                id_serv: newId,
+                jeu,
+                nom_serv,
+                modpack,
+                modpack_url,
+                embedColor,
+                nom_monde: defaultNomMonde,
+                version_serv,
+                path_serv,
+                start_script: defaultStartScript,
+                administrateur,
+                actif: defaultActif
+            };
+    
+            // Ajout du nouveau serveur
+            Serveur.addServeur(serveur);
+    
+            // Réponse avec succès
+            res.status(201).json({
+                message: 'Serveur ajouté avec succès',
+                serveur
+            });
+    
+        } catch (error) {
+            // Gestion des erreurs
+            console.error('Erreur lors de l\'ajout du serveur :', error);
+            res.status(500).json({
+                message: 'Erreur serveur',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = ServeurController;

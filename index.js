@@ -17,6 +17,9 @@ app.get('/', (req, res) => {
 const serveurRoutes = require('./routes/serveurRoutes');
 app.use('/serveurs', serveurRoutes);
 
+const serveurInvRoutes = require('./routes/serveurInvRoutes');
+app.use('/investisseurs', serveurInvRoutes);
+
 // Démarrage du serveur
 app.listen(port, () => {
     console.log(`Serveur démarré sur http://localhost:${port}`);

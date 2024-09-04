@@ -242,7 +242,6 @@ const ServeurController = {
                 modpack,
                 modpack_url,
                 embedColor,
-                nom_monde,
                 version_serv,
                 path_serv,
                 administrateur,

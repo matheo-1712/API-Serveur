@@ -248,7 +248,11 @@ const ServeurController = {
                 administrateur,
             } = req.body;
     
-
+            // Vérification des données obligatoires
+            if (!jeu || !nom_serv || !modpack || !modpack_url || !embedColor || !version_serv || !path_serv || !administrateur) {
+                return res.status(400).json({ error: 'Données manquantes' });
+            }
+            
             // Vérification du token client
             if (token !== client_token || !client_token) {
                 console.log(`Token invalide : ${client_token}`);
@@ -256,7 +260,7 @@ const ServeurController = {
             } else {
                 console.log(`Token client valide !`);
             }
-            
+
             // Récupération des serveurs existants
             const data = Serveur.getServeurs();
             
@@ -287,7 +291,7 @@ const ServeurController = {
     
             // Ajout du nouveau serveur
             Serveur.addServeur(serveur);
-    
+
             // Réponse avec succès
             res.status(201).json({
                 message: 'Serveur ajouté avec succès',

@@ -16,5 +16,12 @@ router.post('/add', ServeurInvController.addInvestisseur);
 // Supprime un investisseur
 router.delete('/:id_discord', ServeurInvController.deleteInvestisseur);
 
+// Ajoute l'id d'un serveur à un investisseur
+router.post('/addServeur', ServeurInvController.addServeurInvestisseur);
+
+// Supprime l'id d'un serveur à un investisseur
+router.delete('/deleteServeur', ServeurInvController.deleteServeurInvestisseur);
+
+
 // Export du module
 module.exports = router;

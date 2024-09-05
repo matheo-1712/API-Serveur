@@ -4,6 +4,7 @@ const e = require('express');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { status } = require('minecraft-server-util');
 
 // Définir un objet controller
 
@@ -294,7 +295,8 @@ const ServeurController = {
             // Réponse avec succès
             res.status(201).json({
                 message: 'Serveur ajouté avec succès',
-                serveur
+                status: 'true',
+                id_serv: newId,
             });
     
         } catch (error) {
@@ -302,10 +304,64 @@ const ServeurController = {
             console.error('Erreur lors de l\'ajout du serveur :', error);
             res.status(500).json({
                 message: 'Erreur serveur',
-                error: error.message
+                error: error.message,
+                status: 'false',
             });
         }
-    }
+    },
+
+    // Supprime un serveur
+    deleteServeur: function (req, res) {
+        const { id_serv, client_token } = req.body;
+        const data = Serveur.getServeur(id_serv);
+
+        if (token !== client_token || !client_token) {
+            console.log(`Token invalide : ${client_token}`);
+            return res.status(401).json({ error: 'Token invalide' });
+        } else {
+            console.log(`Token client valide !`);
+        }
+
+        if (!data) {
+            return res.status(404).json({ error: 'Serveur non trouvé' });
+        }
+
+        try {
+            // Suppression du serveur
+            Serveur.deleteServeur(id_serv);
+            return res.status(200).json({ message: 'Serveur supprimé', status: 'true' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erreur lors de la suppression du serveur' });
+        }
+    },
+
+    // Lance une installation de serveur par rapport à son id et son id Discord
+    installServeur: function (req, res) {
+        const { id_discord, id_serv, client_token, url_installeur } = req.body;
+        const data = Serveur.getServeur(id_serv);
+
+        if (token !== client_token || !client_token) {
+            console.log(`Token invalide : ${client_token}`);
+            return res.status(401).json({ error: 'Token invalide' });
+        } else {
+            console.log(`Token client valide !`);
+        }
+
+        if (!data) {
+            return res.status(404).json({ error: 'Serveur non trouvé' });
+        }
+
+        try {
+            // Envoie à la fonction d'installation dans le model
+            return Serveur.installServeur(id_discord, id_serv, url_installeur);
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Erreur lors de l\'installation du serveur' });
+        }
+
+    },
 }
 
 module.exports = ServeurController;

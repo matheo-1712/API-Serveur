@@ -20,6 +20,8 @@
 // Dépendances
 const e = require('express');
 const { status } = require('minecraft-server-util'); // Module npm minecraft-server-util
+const fs = require('fs');
+const path = require('path');
 
 // Variables
 
@@ -103,13 +105,64 @@ const Serveur = {
         return serveur;
     },
 
-    // Inscrire des données dans le JSON
-
     // Ajoute un serveur
     addServeur: function (serveur) {
         let data = require('../data/serveurs.json');
         data.push(serveur);
+
+        // Enregistre les données dans le fichier JSON
+        fs.writeFileSync(path.resolve(__dirname, '../data/serveurs.json'), JSON.stringify(data, null, 4));
+
         return data;
+    },
+
+    // Supprime un serveur
+    deleteServeur: function (id_serv) {
+        let data = require('../data/serveurs.json');
+        let index = data.findIndex(serveur => serveur.id_serv == id_serv);
+        if (index != -1) {
+            data.splice(index, 1);
+            fs.writeFileSync(path.resolve(__dirname, '../data/serveurs.json'), JSON.stringify(data, null, 4));
+            return { message: 'Serveur supprimé', status: true };
+        } else {
+            return { message: 'Serveur non trouvé', status: false };
+        }
+    },
+
+    // Reçoit une requête POST d'instantiation d'un serveur
+    installServeur: function (id_discord, id_serv, url_installeur) {
+        let data = require('../data/serveurs.json');
+        let serveur = data.find(serveur => serveur.id_serv == id_serv);
+
+        // Vérifie si le serveur existe
+        if (!serveur) {
+            return { message: 'Serveur non trouvé', status: false };
+        }
+
+        // Vérifie si le serveur est actif
+        if (!serveur.actif) {
+            return { message: 'Serveur inactif', status: false };
+        }
+
+        // Execute le script d'installation du serveur en renvoyant l'id discord de l'utilisateur et les informations du serveur
+        let response = { message: 'Installation en cours', status: true, id_discord: id_discord, serveur: serveur, url_installeur: url_installeur };
+
+        // Exécute le script d'installation Bash du serveur
+        const { exec } = require('child_process');
+        exec(`./scripts/serveur_install.sh ${id_discord} ${serveur.modpack_url} ${serveur.id_serv} ${serveur.nom_serv} ${serveur.jeu} ${serveur.version_serv} ${url_installeur}`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Erreur lors de l'installation: ${error.message}`);
+                response = { message: 'Erreur lors de l\'installation', status: false, id_discord: id_discord, serveur: serveur };
+            }
+            if (stderr) {
+                console.error(`Erreur lors de l'installation: ${stderr}`);
+                response = { message: 'Erreur lors de l\'installation', status: false, id_discord: id_discord, serveur: serveur };
+            }
+            console.log(`Installation terminée: ${stdout}`);
+        });
+        
+
+        return response;
     },
 }
 

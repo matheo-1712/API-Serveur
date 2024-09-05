@@ -33,5 +33,11 @@ router.post('/stop', ServeurController.stopServeur);
 // Reçoit une requête POST d'ajout d'un serveur dans le JSON
 router.post('/add', ServeurController.addServeur);
 
+// Reçoit une requête de suppression d'un serveur
+router.delete('/delete', ServeurController.deleteServeur);
+
+// Reçoit une requête POST avec l'id du serveur et l'ID discord de l'utilisateur, url_Installateur qu'il faut installer
+router.post('/installation', ServeurController.installServeur);
+
 // Export du module
 module.exports = router;

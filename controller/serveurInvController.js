@@ -22,8 +22,8 @@ const ServeurInvController = {
 
     // Ajoute un investisseur
     addInvestisseur: function (req, res) {
-        const { id_discord, id_serveur, client_token } = req.body;
-        let response = serveurInvestisseur.addInvestisseur(id_discord, id_serveur, client_token);
+        const { id_discord, client_token } = req.body;
+        let response = serveurInvestisseur.addInvestisseur(id_discord, client_token);
         res.json(response);
     },
 
@@ -37,25 +37,25 @@ const ServeurInvController = {
 
     // Ajoute l'id d'un serveur à un investisseur
     addServeurInvestisseur: function (req, res) {
-        const { id_discord, id_serveur, client_token } = req.body;
+        const { id_discord, id_serv, client_token } = req.body;
         if (token !== client_token) {
             res.json({ message: 'Token invalide', status: false });
             return;
         }
 
-        let response = serveurInvestisseur.addServeurInvestisseur(id_discord, id_serveur, client_token);
+        let response = serveurInvestisseur.addServeurInvestisseur(id_discord, id_serv, client_token);
         res.json(response);
     },
 
     // Supprime l'id d'un serveur d'un investisseur
     deleteServeurInvestisseur: function (req, res) {
-        const { id_discord, id_serveur, client_token } = req.body;
+        const { id_discord, id_serv, client_token } = req.body;
         if (token !== client_token) {
             res.json({ message: 'Token invalide', status: false });
             return;
         }
 
-        let response = serveurInvestisseur.deleteServeurInvestisseur(id_discord, id_serveur, client_token);
+        let response = serveurInvestisseur.deleteServeurInvestisseur(id_discord, id_serv, client_token);
         res.json(response);
     }
 };

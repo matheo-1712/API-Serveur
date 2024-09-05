@@ -1,0 +1,31 @@
+[
+    {
+      "id_serv": "1",
+      "jeu": "Others",
+      "nom_serv": "Palworld",
+      "modpack": "Palworld",
+      "modpack_url": "https://store.steampowered.com/app/1623730/Palworld/",
+      "embedColor": "#FFFFFF",
+      "embedImage": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1623730/header.jpg?t=1715066651",
+      "caption": "",
+      "nom_monde": "Palworld",
+      "version_serv": "Latest",
+      "path_serv": "/home/serveurs/.local/share/Steam/steamapps/common/PalServer/PalServer.sh",
+      "actif": true
+    },
+    {
+      "id_serv": "2",
+      "jeu": "Minecraft",
+      "nom_serv": "Nom du Serveur 2",
+      "modpack": "Nom du Modpack 2",
+      "modpack_url": "http://example.com/modpack2",
+      "embedColor": "#000000",
+      "embedImage": "http://example.com/image2.png",
+      "caption": "Description ou légende 2",
+      "nom_monde": "Nom du Monde 2",
+      "version_serv": "2.0.0",
+      "path_serv": "/chemin/du/serveur2",
+      "actif": false
+    }
+  ]
+  

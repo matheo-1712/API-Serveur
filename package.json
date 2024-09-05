@@ -11,6 +11,6 @@
   "dependencies": {
     "express": "^4.19.2",
     "minecraft-server-util": "^5.4.4",
-    "rcon-client": "^4.2.4"
+    "rcon-client": "^4.2.5"
   }
 }

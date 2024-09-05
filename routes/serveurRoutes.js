@@ -39,5 +39,8 @@ router.delete('/delete', ServeurController.deleteServeur);
 // Reçoit une requête POST avec l'id du serveur et l'ID discord de l'utilisateur, url_Installateur qu'il faut installer
 router.post('/installation', ServeurController.installServeur);
 
+// Reçoit une requête POST pour mettre à jour les server.properties
+router.post('/properties', ServeurController.modifServerProperties);
+
 // Export du module
 module.exports = router;

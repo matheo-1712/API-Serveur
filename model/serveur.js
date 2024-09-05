@@ -22,14 +22,17 @@ const e = require('express');
 const { status } = require('minecraft-server-util'); // Module npm minecraft-server-util
 const fs = require('fs');
 const path = require('path');
+const { Rcon } = require('rcon-client');
 
 // Variables
 
-const ipServPrimaire = 'vanilla.antredesloutres.fr';
+const ipServPrimaire = 'antredesloutres.fr';
 const portServPrimaire = 25565;
 
 const ipServSecondaire = 'antredesloutres.fr';
 const portServSecondaire = 25564;
+
+const { rconPassword, serveurPrimairePort, serveurSecondairePort } = require('../data/rcon.json');
 
 const Serveur = {
 
@@ -83,6 +86,12 @@ const Serveur = {
             serveur.online = false;
         });
 
+        getListPlayer(ipServPrimaire, serveurPrimairePort, rconPassword).then(players => {
+            serveur.players = players;
+        }).catch((error) => {
+            serveur.players = [];
+        });
+
         // Renvoie le serveur
         return serveur;
     },
@@ -99,6 +108,12 @@ const Serveur = {
             serveur.online = true;
         }).catch((error) => {
             serveur.online = false;
+        });
+
+        getListPlayer(ipServPrimaire, serveurSecondairePort, rconPassword).then(players => {
+            serveur.players = players;
+        }).catch((error) => {
+            serveur.players = [];
         });
 
         // Renvoie le serveur
@@ -136,34 +151,78 @@ const Serveur = {
 
         // Vérifie si le serveur existe
         if (!serveur) {
-            return { message: 'Serveur non trouvé', status: false };
+            return false;
         }
 
         // Vérifie si le serveur est actif
         if (!serveur.actif) {
-            return { message: 'Serveur inactif', status: false };
+            return false;
         }
 
         // Execute le script d'installation du serveur en renvoyant l'id discord de l'utilisateur et les informations du serveur
-        let response = { message: 'Installation en cours', status: true, id_discord: id_discord, serveur: serveur, url_installeur: url_installeur };
+        console.log(`Installation du serveur ${serveur.nom_serv} en cours...`);
 
         // Exécute le script d'installation Bash du serveur
         const { exec } = require('child_process');
         exec(`./scripts/serveur_install.sh ${id_discord} ${serveur.modpack_url} ${serveur.id_serv} ${serveur.nom_serv} ${serveur.jeu} ${serveur.version_serv} ${url_installeur}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Erreur lors de l'installation: ${error.message}`);
-                response = { message: 'Erreur lors de l\'installation', status: false, id_discord: id_discord, serveur: serveur };
+                return false;
             }
             if (stderr) {
                 console.error(`Erreur lors de l'installation: ${stderr}`);
-                response = { message: 'Erreur lors de l\'installation', status: false, id_discord: id_discord, serveur: serveur };
+                return false;
             }
-            console.log(`Installation terminée: ${stdout}`);
+            console.log(`Installation du serveur ${serveur.nom_serv} terminée`);
         });
-        
 
-        return response;
+
+        return true;
     },
+
+    // Reçoit une requête POST pour mettre à jour les server.properties
+
+    modifServerProperties: function (id_serv, nom_serv, id_discord, serverProperties) {
+
+        // Execute le script de modification du server.properties en renvoyant l'id discord de l'utilisateur et les informations du serveur
+        console.log(`Modification du serveur ${nom_serv} avec l'id ${id_serv} en cours...`);
+
+        // Exécute le script de modification du server.properties
+        const { exec } = require('child_process');
+
+        /* Ordre des paramètres pour le script de modification du server.properties
+        allow_flight = &1 # bool
+        allow_nether = &2 # bool
+        difficulty = &3 # str
+        enforce_whitelist = &4 # bool
+        gamemode = &5 # str
+        hardcore = &6 # bool
+        max_players = &7 # int
+        pvp = &8 # bool
+        spawn_protection = &9 # int
+        level_type = &10 # str
+        online_mode = &11 # bool
+
+        discord_id = &12 # str
+        server_id = &13 # int
+        server_name = &14 # str
+        */
+
+        exec(`./scripts/update_server_properties.sh ${serverProperties.allow_flight} ${serverProperties.allow_nether} ${serverProperties.difficulty} ${serverProperties.enforce_whitelist} ${serverProperties.gamemode} ${serverProperties.hardcore} ${serverProperties.max_players} ${serverProperties.pvp} ${serverProperties.spawn_protection} ${serverProperties.level_type} ${serverProperties.online_mode} ${id_discord} ${id_serv} ${nom_serv}`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Erreur lors de la modification: ${error.message}`);
+                return false;
+            }
+            if (stderr) {
+                console.error(`Erreur lors de la modification: ${stderr}`);
+                return false;
+            }
+            console.log(`Modification terminée: ${stdout} script executé`);
+        });
+
+        return true;
+
+    }
 }
 
 async function getNbJoueurs(serverIP, serverPort) {
@@ -172,12 +231,61 @@ async function getNbJoueurs(serverIP, serverPort) {
         const response = await status(serverIP, serverPort);
 
         // Afficher le nombre de joueurs connectés
-        console.log(`Nombre de joueurs connectés : ${response.players.online}`);
+        // console.log(`Nombre de joueurs connectés : ${response.players.online}`);
         return response.players.online;
     } catch (error) {
         console.error('Erreur lors de la récupération des données:', error);
         return 0;
     }
 }
+
+// Fonction pour récupérer la liste des joueurs via RCON
+async function getListPlayer(serverIP, serverPort, rconPassword) {
+    try {
+        // Connexion au serveur Minecraft via RCON
+        const rcon = await Rcon.connect({
+            host: serverIP,
+            port: serverPort,
+            password: rconPassword,
+        });
+
+        // Envoi de la commande 'list' pour obtenir la liste des joueurs
+        const response = await rcon.send('list');
+
+        // Fermeture de la connexion RCON
+        await rcon.end();
+
+        // La réponse contient le nombre de joueurs et leur nom
+        // console.log(`Réponse RCON : ${response}`);
+
+        // Extraction du nombre de joueurs et des noms
+        const playersInfo = parseRconListResponse(response);
+
+        // Affichage du nombre de joueurs connectés
+        console.log(`[RCON] Nombre de joueurs connectés : ${playersInfo.count}`);
+
+        // Retourne la liste des joueurs connectés
+        return playersInfo.players;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données via RCON:', error);
+        return [];
+    }
+}
+
+// Fonction utilitaire pour extraire les données de la réponse RCON
+function parseRconListResponse(response) {
+    // La réponse a le format : "There are X of a max of Y players online: player1, player2, ..."
+    const match = response.match(/There are (\d+) of a max of \d+ players online: (.*)/);
+
+    if (match) {
+        const playerCount = parseInt(match[1], 10);
+        const players = match[2] ? match[2].split(', ').filter(Boolean) : [];
+        return { count: playerCount, players };
+    } else {
+        // Cas où il n'y a pas de joueurs en ligne ou réponse inattendue
+        return { count: 0, players: [] };
+    }
+}
+
 
 module.exports = Serveur;

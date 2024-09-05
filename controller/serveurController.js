@@ -69,7 +69,7 @@ const ServeurController = {
             console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide !`);
+            console.log(`Token client valide ! : startServeur `);
         }
 
         if (!data) {
@@ -162,7 +162,7 @@ const ServeurController = {
             console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide !`);
+            console.log(`Token client valide !: stopServeur `);
         }
 
         if (!data) {
@@ -247,23 +247,23 @@ const ServeurController = {
                 path_serv,
                 administrateur,
             } = req.body;
-    
+
             // Vérification des données obligatoires
             if (!jeu || !nom_serv || !modpack || !modpack_url || !embedColor || !version_serv || !path_serv || !administrateur) {
                 return res.status(400).json({ error: 'Données manquantes' });
             }
-            
+
             // Vérification du token client
             if (token !== client_token || !client_token) {
                 console.log(`Token invalide : ${client_token}`);
                 return res.status(401).json({ error: 'Token invalide' });
             } else {
-                console.log(`Token client valide !`);
+                console.log(`Token client valide ! : addServeur `);
             }
 
             // Récupération des serveurs existants
             const data = Serveur.getServeurs();
-            
+
             // Gestion du cas où il n'y a pas encore de serveurs
             const lastId = data.length > 0 ? data[data.length - 1].id_serv : 0;
             const newId = parseInt(lastId) + 1;
@@ -272,7 +272,7 @@ const ServeurController = {
             const defaultActif = true;
             const defaultStartScript = 'start.sh';
             const defaultNomMonde = 'world';
-    
+
             // Création du nouvel objet serveur
             const serveur = {
                 id_serv: newId,
@@ -288,7 +288,7 @@ const ServeurController = {
                 administrateur,
                 actif: defaultActif
             };
-    
+
             // Ajout du nouveau serveur
             Serveur.addServeur(serveur);
 
@@ -298,7 +298,7 @@ const ServeurController = {
                 status: 'true',
                 id_serv: newId,
             });
-    
+
         } catch (error) {
             // Gestion des erreurs
             console.error('Erreur lors de l\'ajout du serveur :', error);
@@ -319,7 +319,7 @@ const ServeurController = {
             console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide !`);
+            console.log(`Token client valide ! : deleteServeur `);
         }
 
         if (!data) {
@@ -345,7 +345,7 @@ const ServeurController = {
             console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide !`);
+            console.log(`Token client valide ! : installServeur `);
         }
 
         if (!data) {
@@ -354,14 +354,90 @@ const ServeurController = {
 
         try {
             // Envoie à la fonction d'installation dans le model
-            return Serveur.installServeur(id_discord, id_serv, url_installeur);
-
+            if (Serveur.installServeur(id_discord, id_serv, url_installeur)) {
+                return res.status(200).json({ message: 'Installation en cours', status: 'true' });
+            } else {
+                return res.status(500).json({ error: 'Erreur lors de l\'installation' });
+            }
         } catch (error) {
             console.error(error);
             return res.status(500).json({ error: 'Erreur lors de l\'installation du serveur' });
         }
 
     },
+
+    // Met à jour les server.properties
+    modifServerProperties: async function (req, res) {
+        // Destructuration des données envoyées dans la requête
+        const {
+            client_token,
+            id_serv,
+            nom_serv,
+            id_discord,
+            allow_flight,
+            allow_nether,
+            difficulty,
+            enforce_whitelist,
+            gamemode,
+            hardcore,
+            max_players,
+            pvp,
+            spawn_protection,
+            level_type,
+            online_mode
+        } = req.body;
+
+        // Vérification de la présence de l'ensemble des données
+        if (!id_serv || !nom_serv || !id_discord || !allow_flight || !allow_nether || !difficulty || !enforce_whitelist || !gamemode || !hardcore || !max_players || !pvp || !spawn_protection || !level_type || !online_mode) {
+            return res.status(400).json({ error: 'Données manquantes', status: 'false' });
+        }
+
+
+        // Vérification du token (token est déjà défini plus haut dans le fichier)
+        if (token !== client_token || !client_token) {
+            console.log(`Token invalide : ${client_token}`);
+            return res.status(401).json({ error: 'Token invalide' });
+        } else {
+            console.log('Token client valide ! : modifServerProperties ');
+        }
+
+        const serverProperties = {
+            allow_flight,
+            allow_nether,
+            difficulty,
+            enforce_whitelist,
+            gamemode,
+            hardcore,
+            max_players,
+            pvp,
+            spawn_protection,
+            level_type,
+            online_mode
+        };
+
+        try {
+            // Tentative de modification des propriétés du serveur
+            const modificationResult = Serveur.modifServerProperties(id_serv, nom_serv, id_discord, serverProperties);
+
+            if (modificationResult) {
+                return res.status(200).json({ message: 'Modification en cours', status: 'true' });
+            } else {
+                return res.status(500).json({ error: 'Erreur lors de la modification', status: 'false' });
+            }
+        } catch (error) {
+            // Log de l'erreur et de la réponse brute
+            console.error('Erreur lors de la modification des ServerProperties :', error);
+
+            // Si l'erreur vient d'un mauvais format JSON
+            if (error instanceof SyntaxError) {
+                return res.status(500).json({ error: 'Erreur de parsing JSON dans la réponse API', status: 'false' });
+            }
+
+            return res.status(500).json({ error: 'Erreur interne du serveur', status: 'false' });
+        }
+    },
+
+
 }
 
 module.exports = ServeurController;

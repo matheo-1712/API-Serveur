@@ -387,10 +387,30 @@ const ServeurController = {
             online_mode
         } = req.body;
 
-        // Vérification de la présence de l'ensemble des données
-        if (!id_serv || !nom_serv || !id_discord || !allow_flight || !allow_nether || !difficulty || !enforce_whitelist || !gamemode || !hardcore || !max_players || !pvp || !spawn_protection || !level_type || !online_mode) {
-            return res.status(400).json({ error: 'Données manquantes', status: 'false' });
+        // Création d'une liste pour suivre les champs manquants
+        let missingFields = [];
+
+        // Vérification pour chaque champ
+        if (id_serv === undefined || id_serv === null) missingFields.push('id_serv');
+        if (nom_serv === undefined || nom_serv === null) missingFields.push('nom_serv');
+        if (id_discord === undefined || id_discord === null) missingFields.push('id_discord');
+        if (allow_flight === undefined || allow_flight === null) missingFields.push('allow_flight');
+        if (allow_nether === undefined || allow_nether === null) missingFields.push('allow_nether');
+        if (difficulty === undefined || difficulty === null) missingFields.push('difficulty');
+        if (enforce_whitelist === undefined || enforce_whitelist === null) missingFields.push('enforce_whitelist');
+        if (gamemode === undefined || gamemode === null) missingFields.push('gamemode');
+        if (hardcore === undefined || hardcore === null) missingFields.push('hardcore');
+        if (max_players === undefined || max_players === null) missingFields.push('max_players');
+        if (pvp === undefined || pvp === null) missingFields.push('pvp');
+        if (spawn_protection === undefined || spawn_protection === null) missingFields.push('spawn_protection');
+        if (level_type === undefined || level_type === null) missingFields.push('level_type');
+        if (online_mode === undefined || online_mode === null) missingFields.push('online_mode');
+
+        // Si des champs sont manquants, renvoyer une erreur
+        if (missingFields.length > 0) {
+            return res.status(400).json({ error: 'Données manquantes', missingFields: missingFields, status: 'false' });
         }
+
 
 
         // Vérification du token (token est déjà défini plus haut dans le fichier)

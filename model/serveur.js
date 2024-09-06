@@ -23,6 +23,8 @@ const { status } = require('minecraft-server-util'); // Module npm minecraft-ser
 const fs = require('fs');
 const path = require('path');
 const { Rcon } = require('rcon-client');
+const { exec } = require('child_process');
+const { token } = require('../data/token.json');
 
 // Variables
 
@@ -163,8 +165,8 @@ const Serveur = {
         console.log(`Installation du serveur ${serveur.nom_serv} en cours...`);
 
         // Exécute le script d'installation Bash du serveur
-        const { exec } = require('child_process');
-        exec(`./scripts/serveur_install.sh ${id_discord} ${serveur.modpack_url} ${serveur.id_serv} ${serveur.nom_serv} ${serveur.jeu} ${serveur.version_serv} ${url_installeur}`, (error, stdout, stderr) => {
+
+        exec(`./scripts/serveur_install.sh ${id_discord} ${serveur.modpack_url} ${serveur.id_serv} ${serveur.nom_serv} ${serveur.jeu} ${serveur.version_serv} ${url_installeur} ${token}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Erreur lors de l'installation: ${error.message}`);
                 return false;
@@ -174,6 +176,13 @@ const Serveur = {
                 return false;
             }
             console.log(`Installation du serveur ${serveur.nom_serv} terminée`);
+
+            // Met à jour l'url du modpack
+            serveur.modpack_url=`https://antredesloutres.fr/fichiers/${serveur.nom_serv}.zip`;
+
+            // Enregistre les données dans le fichier JSON
+            fs.writeFileSync(path.resolve(__dirname, '../data/serveurs.json'), JSON.stringify(data, null, 4));
+            console.log('Données crée par installServeur :', serveur);
         });
 
 
@@ -186,9 +195,6 @@ const Serveur = {
 
         // Execute le script de modification du server.properties en renvoyant l'id discord de l'utilisateur et les informations du serveur
         console.log(`Modification du serveur ${nom_serv} avec l'id ${id_serv} en cours...`);
-
-        // Exécute le script de modification du server.properties
-        const { exec } = require('child_process');
 
         /* Ordre des paramètres pour le script de modification du server.properties
         allow_flight = &1 # bool
@@ -207,6 +213,7 @@ const Serveur = {
         server_id = &13 # int
         server_name = &14 # str
         */
+        const { exec } = require('child_process');
 
         exec(`./scripts/update_server_properties.sh ${serverProperties.allow_flight} ${serverProperties.allow_nether} ${serverProperties.difficulty} ${serverProperties.enforce_whitelist} ${serverProperties.gamemode} ${serverProperties.hardcore} ${serverProperties.max_players} ${serverProperties.pvp} ${serverProperties.spawn_protection} ${serverProperties.level_type} ${serverProperties.online_mode} ${id_discord} ${id_serv} ${nom_serv}`, (error, stdout, stderr) => {
             if (error) {
@@ -234,7 +241,7 @@ async function getNbJoueurs(serverIP, serverPort) {
         // console.log(`Nombre de joueurs connectés : ${response.players.online}`);
         return response.players.online;
     } catch (error) {
-        console.error('Erreur lors de la récupération des données:', error);
+        // console.error('Erreur lors de la récupération des données:', error);
         return 0;
     }
 }
@@ -267,7 +274,7 @@ async function getListPlayer(serverIP, serverPort, rconPassword) {
         // Retourne la liste des joueurs connectés
         return playersInfo.players;
     } catch (error) {
-        console.error('Erreur lors de la récupération des données via RCON:', error);
+        // console.error('Erreur lors de la récupération des données via RCON:', error);
         return [];
     }
 }

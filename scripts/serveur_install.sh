@@ -29,6 +29,7 @@ nom_serv=$4
 jeu=$5
 version_serv=$6
 url_installeur=$7
+client_token=$8
 
 # Affichage pour vérification
 echo "ID Discord : $id_discord"
@@ -64,6 +65,12 @@ fi
 
 # Récupération du nom du fichier
 nom_fichier=$(basename "$modpack_url")
+
+# Modpack copié dans /home/serveurs/modpack_links/fichiers
+cp "$nom_fichier" /home/serveurs/modpack_links/fichiers
+
+# Renommage du fichier modpack deplacé avec le nom du serveur
+mv /home/serveurs/modpack_links/fichiers/"$nom_fichier" /home/serveurs/modpack_links/fichiers/"$nom_serv.zip"
 
 # Extraction du fichier si c'est un zip
 if [[ "$nom_fichier" == *.zip ]]; then
@@ -192,4 +199,29 @@ chmod +x start.sh
 # Lancement du serveur pour la première fois
 echo "Lancement du serveur..."
 ./start.sh
+
+# Attendre la fin du lancement
+sleep 120
+
+# Fermeture du serveur après le premier lancement
+echo "Fermeture du serveur après le premier lancement..."
+screen -S $nom_serv -X stuff "stop$(printf \\r)"
+
+# Attendre la fin de la fermeture
+sleep 30
+
+# Changement du port du serveur dans le fichier server.properties
+echo "Changement du port du serveur dans le fichier server.properties..."
+sed -i 's/server-port=25565/server-port=25564/g' server.properties
+
+# Changement de la ram du serveur
+echo "Changement de la ram du serveur..."
+sed -i 's/-Xmx4G/-Xmx10G/g' start.sh
+
+# Seconde fermeture du screen au cas où
+echo "Fermeture du screen après le changement de port..."
+screen -S $nom_serv -X stuff "exit$(printf \\r)"
+
+# Fin du script
+echo "Installation et configuration du serveur terminées avec succès."
 

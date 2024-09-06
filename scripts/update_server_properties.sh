@@ -1,26 +1,34 @@
+#!/bin/bash
+
 # Ce script sert à mettre à jour le fichier server.properties avec de nouvelles valeurs
-allow_flight = &1 # bool
-allow_nether = &2 # bool
-difficulty = &3 # str
-enforce_whitelist = &4 # bool
-gamemode = &5 # str
-hardcore = &6 # bool
-max_players = &7 # int
-pvp = &8 # bool
-spawn_protection = &9 # int
-level_type = &10 # str
-online_mode = &11 # bool
 
-discord_id = &12 # str
-server_id = &13 # int
-server_name = &14 # str
+# Assignez les arguments aux variables
+allow_flight=$1       # bool
+allow_nether=$2       # bool
+difficulty=$3         # str
+enforce_whitelist=$4  # bool
+gamemode=$5           # str
+hardcore=$6           # bool
+max_players=$7        # int
+pvp=$8               # bool
+spawn_protection=$9   # int
+level_type=${10}      # str
+online_mode=${11}     # bool
 
-# On récupère le chemin du serveur avec l'API "api.antredesloutres.fr/serveurs/"
-api_link="https://api.antredesloutres.fr/serveurs/$server_id"
-server_path=$(curl -s $api_link | jq -r '.path')
+discord_id=${12}      # str
+server_id=${13}       # int
+server_name=${14}     # str
 
-# On se déplace dans le dossier du serveur
-cd $server_path
+# Correction de l'assignation de la variable server_dir
+server_dir="/home/serveurs/minecraft/serveurs-investisseurs/$discord_id/$server_name/"
+
+# Mouvement dans le dossier du serveur
+if [ ! -d "$server_dir" ]; then
+    echo "Le dossier du serveur n'existe pas, création..."
+    mkdir -p "$server_dir"
+fi
+
+cd "$server_dir" || { echo "Impossible de se déplacer dans le répertoire $server_dir"; exit 1; }
 
 # On regarde si le fichier server.properties existe
 if [ -f server.properties ]; then

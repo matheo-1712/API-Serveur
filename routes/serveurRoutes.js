@@ -7,22 +7,18 @@ const router = express.Router();
 router.get('/', ServeurController.getServeurs);
 
 // Affiche un serveur
-router.get('/:id_serv', ServeurController.getServeur);
+router.get('/infos/:id_serv', ServeurController.getServeur);
 
-// Affiche les serveurs actifs
 router.get('/actifs', ServeurController.getServeursActifs);
-
-// Affiche le serveur principal actuellement actif
-router.get('/primaire/actif', ServeurController.getServeurPrimaire);
-
-// Affiche le serveur secondaire actuellement actif
-router.get('/secondaire/actif', ServeurController.getServeurSecondaire);
 
 // Affiche les serveurs par rapport à un jeu
 router.get('/jeu/:jeu', ServeurController.getServeursByJeu);
 
 // Affiche les serveurs Actifs par rapport à un jeu
 router.get('/actifs/jeu/:jeu', ServeurController.getServeursActifsByJeu);
+
+// Affiche toutes les statistiques des serveurs
+router.get('/stats', ServeurController.getAllStatsPlayer);
 
 // Reçoit une requête POST de lancement du serveur
 router.post('/start', ServeurController.startServeur);
@@ -41,6 +37,12 @@ router.post('/installation', ServeurController.installServeur);
 
 // Reçoit une requête POST pour mettre à jour les server.properties
 router.post('/properties', ServeurController.modifServerProperties);
+
+// Reçoit une requête affichant le serveur principal actuellement actif
+router.post('/primaire', ServeurController.getServeurPrimaire);
+
+// Reçoit une requête affichant le serveur secondaire actuellement actif
+router.post('/secondaire', ServeurController.getServeurSecondaire);
 
 // Export du module
 module.exports = router;

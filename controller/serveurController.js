@@ -4,9 +4,8 @@ const e = require('express');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { status } = require('minecraft-server-util');
 
-// Définir un objet controller
+// Contrôleur des serveurs
 
 const ServeurController = {
 
@@ -44,14 +43,36 @@ const ServeurController = {
     },
 
     // Affiche le serveur principal actuellement actif
-    getServeurPrimaire: function (req, res) {
-        let data = Serveur.getServeurPrimaire();
-        res.json(data);
+    getServeurPrimaire: async function (req, res) {
+        const { client_token } = req.body;
+
+        if (token !== client_token || !client_token) {
+            // console.log(`Token invalide : ${client_token}`);
+            return res.status(401).json({ error: 'Token invalide', status: 'false' });
+        } else {
+            console.log(`[TOKEN] getServeurPrimaire : Token valide`);
+            let data = await Serveur.getServeurPrimaire(client_token);
+            res.json(data);
+        }
     },
 
     // Affiche le serveur secondaire actuellement actif
-    getServeurSecondaire: function (req, res) {
-        let data = Serveur.getServeurSecondaire();
+    getServeurSecondaire: async function (req, res) {
+        const { client_token } = req.body;
+
+        if (token !== client_token || !client_token) {
+            // console.log(`Token invalide : ${client_token}`);
+            return res.status(401).json({ error: 'Token invalide', status: 'false' });
+        } else {
+            console.log(`[TOKEN] getServeurSecondaire : Token valide`);
+        }
+        let data = await Serveur.getServeurSecondaire(client_token);
+        res.json(data);
+    },
+
+    // Affiche l'ensemble des stats des joueurs
+    getAllStatsPlayer: async function (req, res) {
+        let data = await Serveur.getAllStatsPlayer();
         res.json(data);
     },
 
@@ -69,7 +90,7 @@ const ServeurController = {
             console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide ! : startServeur `);
+            console.log(`[TOKEN] startServeur : Token valide`);
         }
 
         if (!data) {
@@ -86,6 +107,9 @@ const ServeurController = {
             // Récupère le chemin du script de lancement du serveur
             const scriptPath = data.path_serv;
             const scriptName = data.start_script
+
+            console.log(`Lancement du serveur ${data.nom_serv}...`);
+            console.log(`Chemin du script : ${scriptPath}${scriptName}`);
 
             // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
@@ -159,10 +183,10 @@ const ServeurController = {
         // récupère l'ID 
 
         if (token !== client_token || !client_token) {
-            console.log(`Token invalide : ${client_token}`);
+            // console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide !: stopServeur `);
+            console.log(`[TOKEN] stopServeur : Token valide`);
         }
 
         if (!data) {
@@ -190,6 +214,16 @@ const ServeurController = {
                             }
                             console.log(`stdout: ${stdout}`);
                             console.error(`stderr: ${stderr}`);
+                            // Après que le serveur soit arrêté, on fait un entrée puis on ferme le screen
+                            exec(`screen -S ${screenName} -X stuff '^M'`, (error, stdout, stderr) => {
+                                if (error) {
+                                    console.error(`Erreur lors de l'arrêt du screen : ${error}`);
+                                    return res.status(500).json({ error: 'Erreur lors de l\'arrêt du screen' });
+                                }
+                                console.log(`stdout: ${stdout}`);
+                                console.error(`stderr: ${stderr}`);
+                                return res.status(200).json({ message: 'Serveur arrêté' });
+                            });
                             return res.status(200).json({ message: 'Serveur arrêté' });
                         });
                     } else {
@@ -258,7 +292,7 @@ const ServeurController = {
                 console.log(`Token invalide : ${client_token}`);
                 return res.status(401).json({ error: 'Token invalide' });
             } else {
-                console.log(`Token client valide ! : addServeur `);
+                console.log(`[TOKEN] addServeur : Token valide`);
             }
 
             // Récupération des serveurs existants
@@ -266,7 +300,8 @@ const ServeurController = {
 
             // Gestion du cas où il n'y a pas encore de serveurs
             const lastId = data.length > 0 ? data[data.length - 1].id_serv : 0;
-            const newId = parseInt(lastId) + 1;
+            // Mettre l'id du serveur à +1 du dernier serveur et le convertir en string
+            const newId = (parseInt(lastId) + 1).toString();
 
             // Données par défaut
             const defaultActif = true;
@@ -319,7 +354,7 @@ const ServeurController = {
             console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide ! : deleteServeur `);
+            console.log(`[TOKEN] deleteServeur : Token valide`);
         }
 
         if (!data) {
@@ -345,7 +380,7 @@ const ServeurController = {
             console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log(`Token client valide ! : installServeur `);
+            console.log(`[TOKEN] installServeur : Token valide`);
         }
 
         if (!data) {
@@ -415,10 +450,10 @@ const ServeurController = {
 
         // Vérification du token (token est déjà défini plus haut dans le fichier)
         if (token !== client_token || !client_token) {
-            console.log(`Token invalide : ${client_token}`);
+            // console.log(`Token invalide : ${client_token}`);
             return res.status(401).json({ error: 'Token invalide' });
         } else {
-            console.log('Token client valide ! : modifServerProperties ');
+            console.log('[TOKEN] modifServerProperties : Token valide');
         }
 
         const serverProperties = {
@@ -456,8 +491,7 @@ const ServeurController = {
             return res.status(500).json({ error: 'Erreur interne du serveur', status: 'false' });
         }
     },
-
-
 }
 
+// Export du module
 module.exports = ServeurController;

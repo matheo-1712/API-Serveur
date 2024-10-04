@@ -47,7 +47,7 @@ const ServeurInvController = {
         res.json(response);
     },
 
-    // Supprime l'id d'un serveur d'un investisseur
+    // Supprime l'id d'un serveur à un investisseur
     deleteServeurInvestisseur: function (req, res) {
         const { id_discord, id_serv, client_token } = req.body;
         if (token !== client_token) {

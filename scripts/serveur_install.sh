@@ -189,8 +189,10 @@ echo "Chemin vers Java sélectionné : $JAVA_PATH"
 # Création du fichier de lancement
 echo "Création du fichier de lancement du serveur..."
 echo "#!/bin/bash" > start.sh
-# Lancement du serveur dans un screen pour le premier lancement
-echo "screen -dmS $nom_serv" >> start.sh
+# Création d'un screen temporaire pour le lancement du serveur et détachement
+echo "Création d'un screen temporaire pour le lancement du serveur..."
+
+# Création du fichier de lancement
 echo "$JAVA_PATH -Xmx4G -Xms1G -jar serveur.jar nogui" >> start.sh
 
 # Donner les droits d'exécution au fichier de lancement
@@ -198,7 +200,9 @@ chmod +x start.sh
 
 # Lancement du serveur pour la première fois
 echo "Lancement du serveur..."
-./start.sh
+
+# Création du screen
+screen -dmS $nom_serv bash -c "./start.sh"
 
 # Attendre la fin du lancement
 sleep 120

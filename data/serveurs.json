@@ -11,10 +11,7 @@
         "path_serv": "/home/serveurs/minecraft/serveurs-globaux/vanilla/",
         "start_script": "start.sh",
         "administrateur": "Azertor",
-        "actif": true,
-        "nb_joueurs": 0,
-        "online": true,
-        "players": []
+        "actif": true
     },
     {
         "id_serv": "1",
@@ -28,10 +25,7 @@
         "path_serv": "/home/serveurs/.local/share/Steam/steamapps/common/PalServer/",
         "start_script": "PalServer.sh",
         "administrateur": "Rerebleue, Azertor",
-        "actif": true,
-        "players": [],
-        "nb_joueurs": 0,
-        "online": true
+        "actif": true
     },
     {
         "id_serv": "2",
@@ -45,9 +39,7 @@
         "path_serv": "/home/serveurs/minecraft/serveurs-globaux/prominence/",
         "start_script": "start.sh",
         "administrateur": "Azertor, Rerebleue",
-        "actif": true,
-        "nb_joueurs": 0,
-        "online": true
+        "actif": true
     },
     {
         "id_serv": "3",
@@ -61,10 +53,6 @@
         "path_serv": "/home/serveurs/minecraft/serveurs-globaux/creatif/",
         "start_script": "start.sh",
         "administrateur": "Azertor",
-        "actif": true,
-        "nb_joueurs": 0,
-        "online": true,
-        "players": []
+        "actif": true
     }
-
 ]

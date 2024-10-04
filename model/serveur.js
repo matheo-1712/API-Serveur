@@ -19,8 +19,7 @@
 
 // Dépendances
 const e = require('express');
-const { status } = require('minecraft-server-util'); // Module npm minecraft-server-util
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const { Rcon } = require('rcon-client');
 const { exec } = require('child_process');
@@ -28,13 +27,10 @@ const { token } = require('../data/token.json');
 
 // Variables
 
-const ipServPrimaire = 'antredesloutres.fr';
-const portServPrimaire = 25565;
+const ipServPrimaire = '194.164.76.165';
+const ipServSecondaire = '194.164.76.165';
 
-const ipServSecondaire = 'antredesloutres.fr';
-const portServSecondaire = 25564;
-
-const { rconPassword, serveurPrimairePort, serveurSecondairePort } = require('../data/rcon.json');
+const { rconPassword, serveurPrimairePort, serveurSecondairePort } = require('../data/rcon.json'); const { get } = require('http');
 
 const Serveur = {
 
@@ -43,6 +39,9 @@ const Serveur = {
     // Affiche la liste des serveurs
     getServeurs: function () {
         let data = require('../data/serveurs.json');
+        if (data.length === 0) {
+            return { message: 'Aucun serveur trouvé', status: false };
+        }
         return data;
     },
 
@@ -50,6 +49,9 @@ const Serveur = {
     getServeur: function (id_serv) {
         let data = require('../data/serveurs.json');
         let serveur = data.find(serveur => serveur.id_serv == id_serv);
+        if (!serveur) {
+            return { message: 'Serveur non trouvé', status: false };
+        }
         return serveur;
     },
 
@@ -57,13 +59,20 @@ const Serveur = {
     getServeursActifs: function () {
         let data = require('../data/serveurs.json');
         let serveurs = data.filter(serveur => serveur.actif == true);
+        if (serveurs.length === 0) {
+            return { message: 'Aucun serveur actif trouvé', status: false };
+        }
         return serveurs;
     },
 
     // Affiche les serveurs par rapport à un jeu
     getServeursByJeu: function (jeu) {
         let data = require('../data/serveurs.json');
-        let serveurs = data.filter(serveur => serveur.jeu == jeu);
+        // Filtre les serveurs par rapport au jeu et gère la casse
+        let serveurs = data.filter(serveur => serveur.jeu.toLowerCase() == jeu.toLowerCase());
+        if (serveurs.length === 0) {
+            return { message: 'Aucun serveur trouvé pour ce jeu', status: false };
+        }
         return serveurs;
     },
 
@@ -71,65 +80,52 @@ const Serveur = {
     getServeursActifsByJeu: function (jeu) {
         let data = require('../data/serveurs.json');
         let serveurs = data.filter(serveur => serveur.jeu == jeu && serveur.actif == true);
+        if (serveurs.length === 0) {
+            return { message: 'Aucun serveur actif trouvé pour ce jeu', status: false };
+        }
         return serveurs;
     },
 
-    // Affiche le serveur principal actuellement actif
-    getServeurPrimaire: function () {
-        let data = require('../data/serveurs.json');
-        let serveurActif = require('../data/actif.json');
-        let serveur = data.find(serveur => serveur.id_serv == serveurActif.primaire);
+    // Obtenir les statistiques des joueurs
+    getAllStatsPlayer: async function () {
+        const dossierStats = path.resolve(__dirname, '../data/minecraft_stats');
+        try {
+            // Lire tous les fichiers dans le dossier spécifié avec fs.promises.readdir
+            const fichiers = await fs.readdir(dossierStats);
 
-        // Récupère le nombre de joueurs connectés
-        getNbJoueurs(ipServPrimaire, portServPrimaire).then(nb_joueurs => {
-            serveur.nb_joueurs = nb_joueurs;
-            serveur.online = true;
-        }).catch((error) => {
-            serveur.online = false;
-        });
+            // Filtrer uniquement les fichiers JSON
+            const fichiersJson = fichiers.filter(fichier => fichier.endsWith('.json'));
 
-        getListPlayer(ipServPrimaire, serveurPrimairePort, rconPassword).then(players => {
-            serveur.players = players;
-        }).catch((error) => {
-            serveur.players = [];
-        });
+            // Parcourir chaque fichier JSON et lire son contenu
+            const donneesJoueurs = [];
+            for (const fichier of fichiersJson) {
+                const cheminFichier = path.join(dossierStats, fichier);
 
-        // Renvoie le serveur
-        return serveur;
-    },
+                // Lire le fichier JSON
+                const contenu = await fs.readFile(cheminFichier, 'utf-8');
 
-    // Affiche le serveur secondaire actuellement actif
-    getServeurSecondaire: function () {
-        let data = require('../data/serveurs.json');
-        let serveurActif = require('../data/actif.json');
-        let serveur = data.find(serveur => serveur.id_serv == serveurActif.secondaire);
+                // Convertir le contenu JSON en objet JavaScript
+                const donnees = JSON.parse(contenu);
 
-        // Récupère le nombre de joueurs connectés
-        getNbJoueurs(ipServSecondaire, portServSecondaire).then(nb_joueurs => {
-            serveur.nb_joueurs = nb_joueurs;
-            serveur.online = true;
-        }).catch((error) => {
-            serveur.online = false;
-        });
+                // Ajouter les données à un tableau
+                donneesJoueurs.push(donnees);
+            }
 
-        getListPlayer(ipServPrimaire, serveurSecondairePort, rconPassword).then(players => {
-            serveur.players = players;
-        }).catch((error) => {
-            serveur.players = [];
-        });
-
-        // Renvoie le serveur
-        return serveur;
+            // Retourner toutes les données
+            return donneesJoueurs;
+        } catch (err) {
+            console.error('Erreur lors de la lecture des fichiers JSON :', err);
+            throw err;
+        }
     },
 
     // Ajoute un serveur
     addServeur: function (serveur) {
-        let data = require('../data/serveurs.json');
-        data.push(serveur);
+        let data = require('../data/serveurs.json')
+        data.push(serveur)
 
         // Enregistre les données dans le fichier JSON
         fs.writeFileSync(path.resolve(__dirname, '../data/serveurs.json'), JSON.stringify(data, null, 4));
-
         return data;
     },
 
@@ -178,7 +174,7 @@ const Serveur = {
             console.log(`Installation du serveur ${serveur.nom_serv} terminée`);
 
             // Met à jour l'url du modpack
-            serveur.modpack_url=`https://antredesloutres.fr/fichiers/${serveur.nom_serv}.zip`;
+            serveur.modpack_url = `https://antredesloutres.fr/fichiers/${serveur.nom_serv}.zip`;
 
             // Enregistre les données dans le fichier JSON
             fs.writeFileSync(path.resolve(__dirname, '../data/serveurs.json'), JSON.stringify(data, null, 4));
@@ -213,6 +209,7 @@ const Serveur = {
         server_id = &13 # int
         server_name = &14 # str
         */
+
         const { exec } = require('child_process');
 
         exec(`./scripts/update_server_properties.sh ${serverProperties.allow_flight} ${serverProperties.allow_nether} ${serverProperties.difficulty} ${serverProperties.enforce_whitelist} ${serverProperties.gamemode} ${serverProperties.hardcore} ${serverProperties.max_players} ${serverProperties.pvp} ${serverProperties.spawn_protection} ${serverProperties.level_type} ${serverProperties.online_mode} ${id_discord} ${id_serv} ${nom_serv}`, (error, stdout, stderr) => {
@@ -229,22 +226,77 @@ const Serveur = {
 
         return true;
 
-    }
+    },
+
+    getServeurPrimaire: async function (client_token) {
+        try {
+            let data = require('../data/serveurs.json');
+            let serveurActif = require('../data/actif.json');
+
+            // Trouve le serveur actif
+            let serveur = data.find(serveur => serveur.id_serv === serveurActif.primaire);
+
+            if (!serveur) {
+                throw new Error("Serveur principal non trouvé.");
+            }
+
+            // Vérification du token pour l'exécution la fonction
+            if (token === client_token) {
+                // Assurez-vous que ipServPrimaire, serveurPrimairePort et rconPassword sont définis ailleurs
+                const players = await getListPlayer(ipServPrimaire, serveurPrimairePort, rconPassword);
+
+                // Récupère le nombre de joueurs connectés et les joueurs connectés
+                serveur.nb_joueurs = players.count;
+                serveur.players = players.players;
+                serveur.online = players.online;
+
+                // Renvoie le serveur
+                return serveur;
+            } else {
+                return serveur;
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération du serveur principal:", error.message);
+            return null; // ou gérez l'erreur autrement
+        }
+    },
+
+    // Affiche le serveur secondaire actuellement actif
+    getServeurSecondaire: async function (client_token) {
+        try {
+            let data = require('../data/serveurs.json');
+            let serveurActif = require('../data/actif.json');
+
+            // Trouve le serveur actif
+            let serveur = data.find(serveur => serveur.id_serv === serveurActif.secondaire);
+
+            if (!serveur) {
+                throw new Error("Serveur principal non trouvé.");
+            }
+
+            // Vérification du token pour l'exécution la fonction
+            if (token === client_token) {
+                // Assurez-vous que ipServPrimaire, serveurPrimairePort et rconPassword sont définis ailleurs
+                const players = await getListPlayer(ipServSecondaire, serveurSecondairePort, rconPassword);
+
+                // Récupère le nombre de joueurs connectés et les joueurs connectés
+                serveur.nb_joueurs = players.count;
+                serveur.players = players.players;
+                serveur.online = players.online;
+
+                // Renvoie le serveur
+                return serveur;
+            } else {
+                return serveur;
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération du serveur principal:", error.message);
+            return null; // ou gérez l'erreur autrement
+        }
+    },
 }
 
-async function getNbJoueurs(serverIP, serverPort) {
-    try {
-        // Interroger le serveur Minecraft
-        const response = await status(serverIP, serverPort);
-
-        // Afficher le nombre de joueurs connectés
-        // console.log(`Nombre de joueurs connectés : ${response.players.online}`);
-        return response.players.online;
-    } catch (error) {
-        // console.error('Erreur lors de la récupération des données:', error);
-        return 0;
-    }
-}
+// Fonction utilitaire 
 
 // Fonction pour récupérer la liste des joueurs via RCON
 async function getListPlayer(serverIP, serverPort, rconPassword) {
@@ -268,14 +320,11 @@ async function getListPlayer(serverIP, serverPort, rconPassword) {
         // Extraction du nombre de joueurs et des noms
         const playersInfo = parseRconListResponse(response);
 
-        // Affichage du nombre de joueurs connectés
-        console.log(`[RCON] Nombre de joueurs connectés : ${playersInfo.count}`);
-
-        // Retourne la liste des joueurs connectés
-        return playersInfo.players;
+        return playersInfo;
     } catch (error) {
         // console.error('Erreur lors de la récupération des données via RCON:', error);
-        return [];
+        const playersInfo = { count: 0, players: [], online: false };
+        return playersInfo;
     }
 }
 
@@ -283,16 +332,24 @@ async function getListPlayer(serverIP, serverPort, rconPassword) {
 function parseRconListResponse(response) {
     // La réponse a le format : "There are X of a max of Y players online: player1, player2, ..."
     const match = response.match(/There are (\d+) of a max of \d+ players online: (.*)/);
+    // Réponse alternative : "There are 1 of a max of 20 players online: QuingAngel"
+    const match2 = response.match(/There are (\d+) of a max of \d+ players online: (.+)/);
 
     if (match) {
         const playerCount = parseInt(match[1], 10);
         const players = match[2] ? match[2].split(', ').filter(Boolean) : [];
-        return { count: playerCount, players };
+        const online = true;
+        return { count: playerCount, players, online };
+    } else if (match2) {
+        const playerCount = parseInt(match2[1], 10);
+        const players = match2[2] ? match2[2].split(', ').filter(Boolean) : [];
+        const online = true;
+        return { count: playerCount, players, online };
     } else {
-        // Cas où il n'y a pas de joueurs en ligne ou réponse inattendue
-        return { count: 0, players: [] };
+        const online = false;
+        return { count: 0, players: [], online };
     }
 }
 
-
+// Export du module
 module.exports = Serveur;

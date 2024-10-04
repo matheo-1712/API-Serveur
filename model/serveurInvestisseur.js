@@ -66,11 +66,8 @@ const serveurInvestisseur = {
         return { message: 'Serveur ajouté à l\'investisseur', status: true };
     },
 
-    // Supprime un serveur d'un investisseur
-    deleteServeurInvestisseur: function (id_discord, id_serv, client_token) {
-        if (token !== client_token) {
-            return { message: 'Token invalide', status: false };
-        }
+    // Supprime un serveur à un investisseur
+    deleteServeurInvestisseur: function (id_discord, id_serv) {
 
         let data = require('../data/serveurInvestisseur.json');
         if (!data[id_discord]) {
@@ -78,14 +75,15 @@ const serveurInvestisseur = {
         }
 
         let index = data[id_discord].indexOf(id_serv);
-        if (index > -1) {
-            data[id_discord].splice(index, 1);
-            fs.writeFileSync(path.resolve(__dirname, '../data/serveurInvestisseur.json'), JSON.stringify(data, null, 4));
-            return { message: 'Serveur supprimé de l\'investisseur', status: true };
-        } else {
+        if (index === -1) {
             return { message: 'Serveur non trouvé', status: false };
         }
+
+        data[id_discord].splice(index, 1);
+        fs.writeFileSync(path.resolve(__dirname, '../data/serveurInvestisseur.json'), JSON.stringify(data, null, 4));
+        return { message: 'Serveur supprimé de l\'investisseur', status: true };
     }
+
 };
 
 module.exports = serveurInvestisseur;

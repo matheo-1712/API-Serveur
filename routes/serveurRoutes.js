@@ -20,6 +20,12 @@ router.get('/actifs/jeu/:jeu', ServeurController.getServeursActifsByJeu);
 // Affiche toutes les statistiques des serveurs
 router.get('/stats', ServeurController.getAllStatsPlayer);
 
+// Affiche les statistiques d'un serveur par rapport à son ID ou son nom
+router.get('/stats/:id_serv', ServeurController.getStatsPlayerByServeur);
+
+// Affiche les statistiques d'un joueur par rapport à son pseudo ou son UUID  
+router.get('/stats/player/:pseudo', ServeurController.getStatsPlayer);
+
 // Reçoit une requête POST de lancement du serveur
 router.post('/start', ServeurController.startServeur);
 

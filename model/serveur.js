@@ -119,6 +119,98 @@ const Serveur = {
         }
     },
 
+    // Obtenir les statistiques des joueurs pour un serveur spécifique
+
+    getStatsPlayerByServeur: async function (serveur) {
+        const dossierStats = path.resolve(__dirname, '../data/minecraft_stats');
+        try {
+            // Lire tous les fichiers dans le dossier spécifié avec fs.promises.readdir
+            const fichiers = await fs.readdir(dossierStats);
+
+            // Filtrer uniquement les fichiers JSON
+            const fichiersJson = fichiers.filter(fichier => fichier.endsWith('.json'));
+
+            // Parcourir chaque fichier JSON et lire son contenu
+            const donneesJoueurs = [];
+            for (const fichier of fichiersJson) {
+                const cheminFichier = path.join(dossierStats, fichier);
+
+                // Lire le fichier JSON
+                const contenu = await fs.readFile(cheminFichier, 'utf-8');
+
+                // Convertir le contenu JSON en objet JavaScript
+                const donnees = JSON.parse(contenu);
+
+                // Rechercher les statistiques pour le serveur spécifique avec l'ID ou le nom
+                const statsServeur = donnees.find(stat => stat.id_serv === serveur || stat.nom_serv.toLowerCase() === serveur.toLowerCase());
+
+                if (statsServeur) {
+                    // Ajouter les données à un tableau
+                    donneesJoueurs.push(statsServeur);
+                }
+            }
+
+            // Retourner toutes les données
+            return donneesJoueurs;
+        } catch (err) {
+            console.error('Erreur lors de la lecture des fichiers JSON :', err);
+            throw err;
+        }
+    },
+
+    getStatsPlayer: async function (pseudo) {
+        const dossierStats = path.resolve(__dirname, '../data/minecraft_stats');
+
+        // Ajoute des tirets pour l'UUID si il n'y en a pas
+        if (pseudo.length === 32) {
+            pseudo = `${pseudo.slice(0, 8)}-${pseudo.slice(8, 12)}-${pseudo.slice(12, 16)}-${pseudo.slice(16, 20)}-${pseudo.slice(20)}`;
+        }
+        try {
+            // Lire tous les fichiers dans le dossier spécifié
+            const fichiers = await fs.readdir(dossierStats);
+
+            // Filtrer uniquement les fichiers JSON
+            const fichiersJson = fichiers.filter(fichier => fichier.endsWith('.json'));
+
+            const statsJoueursTrouves = [];
+
+            // Parcourir chaque fichier JSON et lire son contenu
+            for (const fichier of fichiersJson) {
+                const cheminFichier = path.join(dossierStats, fichier);
+
+                // Lire le fichier JSON
+                const contenu = await fs.readFile(cheminFichier, 'utf-8');
+
+                // Convertir le contenu JSON en tableau d'objets JavaScript
+                const donnees = JSON.parse(contenu);
+
+                // Parcourir chaque objet dans le tableau
+                for (const joueur of donnees) {
+                    // Vérifier si le pseudo ou l'UUID correspond
+                    if (joueur.pseudo.toLowerCase() === pseudo.toLowerCase() || joueur.uuid === pseudo) {
+                        // Ajouter les données du joueur au tableau des résultats
+                        statsJoueursTrouves.push(joueur);
+                    }
+                }
+            }
+
+            // Trier les statistiques dans l'ordre croissant de l'id du serveur
+            statsJoueursTrouves.sort((a, b) => a.id_serv - b.id_serv);
+
+            // Si on a trouvé des joueurs, retourner leurs données
+            if (statsJoueursTrouves.length > 0) {
+                return statsJoueursTrouves;
+            } else {
+                // Si aucun joueur n'a été trouvé, retourner null ou une indication
+                return null;
+            }
+
+        } catch (err) {
+            console.error('Erreur lors de la lecture des fichiers JSON :', err);
+            throw err;
+        }
+    },
+
     // Ajoute un serveur
     addServeur: function (serveur) {
         let data = require('../data/serveurs.json')

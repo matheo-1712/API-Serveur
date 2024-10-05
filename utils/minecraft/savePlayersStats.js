@@ -79,15 +79,15 @@ async function inscriptionServeurMinecraft(nomServeur, id_serv, path_serv, nomMo
 
             // Calculer les blocs minés et placés
             const oresMined = {
-                ironMined: statsJoueur.stats['minecraft:mined']['minecraft:iron_ore'] || 0,
-                goldMined: statsJoueur.stats['minecraft:mined']['minecraft:gold_ore'] || 0,
-                diamondMined: statsJoueur.stats['minecraft:mined']['minecraft:diamond_ore'] || 0,
-                emeraldMined: statsJoueur.stats['minecraft:mined']['minecraft:emerald_ore'] || 0,
-                lapisMined: statsJoueur.stats['minecraft:mined']['minecraft:lapis_ore'] || 0,
-                redstoneMined: statsJoueur.stats['minecraft:mined']['minecraft:redstone_ore'] || 0,
-                coalMined: statsJoueur.stats['minecraft:mined']['minecraft:coal_ore'] || 0,
-                quartzMined: statsJoueur.stats['minecraft:mined']['minecraft:nether_quartz_ore'] || 0,
-                ancientDebrisMined: statsJoueur.stats['minecraft:mined']['minecraft:ancient_debris'] || 0
+                ironMined: statsJoueur.stats['minecraft:mined']?.['minecraft:iron_ore'] || 0,
+                goldMined: statsJoueur.stats['minecraft:mined']?.['minecraft:gold_ore'] || 0,
+                diamondMined: statsJoueur.stats['minecraft:mined']?.['minecraft:diamond_ore'] || 0,
+                emeraldMined: statsJoueur.stats['minecraft:mined']?.['minecraft:emerald_ore'] || 0,
+                lapisMined: statsJoueur.stats['minecraft:mined']?.['minecraft:lapis_ore'] || 0,
+                redstoneMined: statsJoueur.stats['minecraft:mined']?.['minecraft:redstone_ore'] || 0,
+                coalMined: statsJoueur.stats['minecraft:mined']?.['minecraft:coal_ore'] || 0,
+                quartzMined: statsJoueur.stats['minecraft:mined']?.['minecraft:nether_quartz_ore'] || 0,
+                ancientDebrisMined: statsJoueur.stats['minecraft:mined']?.['minecraft:ancient_debris'] || 0
             };
             
             let blocsMines = 0;

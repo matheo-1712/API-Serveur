@@ -76,6 +76,20 @@ const ServeurController = {
         res.json(data);
     },
 
+    // Affiche les stats des joueurs par rapport à un serveur
+    getStatsPlayerByServeur: async function (req, res) {
+        let serveur = req.params.id_serv;
+        let data = await Serveur.getStatsPlayerByServeur(serveur);
+        res.json(data);
+    },
+
+    // Affiche les stats d'un joueur par rapport à son pseudo ou son UUID
+    getStatsPlayer: async function (req, res) {
+        let pseudo = req.params.pseudo;
+        let data = await Serveur.getStatsPlayer(pseudo);
+        res.json(data);
+    },
+    
     // Reçoit une requête POST de lancement du serveur
     startServeur: function (req, res) {
         const { id_serv, client_token } = req.body;

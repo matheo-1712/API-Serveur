@@ -89,7 +89,7 @@ const ServeurController = {
         let data = await Serveur.getStatsPlayer(pseudo);
         res.json(data);
     },
-    
+
     // Reçoit une requête POST de lancement du serveur
     startServeur: function (req, res) {
         const { id_serv, client_token } = req.body;
@@ -214,45 +214,31 @@ const ServeurController = {
                 // Nom du screen à utiliser
                 screenName = 'serv-secondaire';
             }
-            // Vérifie si le serveur est déjà démarré
             exec(`screen -list | grep "${screenName}"`, (error, stdout, stderr) => {
                 if (stdout.includes(screenName)) {
-                    // Vérifie le type de jeu
-                    if (data.jeu == 'Minecraft') {
+                    // Envoie la commande stop au serveur
+                    console.log(`Envoi de la commande 'stop' au serveur ${screenName}...`);
+                    exec(`screen -S ${screenName} -X stuff 'stop\n'`);
 
-                        // Envoie la commande stop au serveur
-                        exec(`screen -S ${screenName} -X stuff 'stop^M'`, (error, stdout, stderr) => {
-                            if (error) {
-                                console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
-                                return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
+                    const waitTime = 20000; // Temps d'attente en millisecondes avant de forcer la fermeture (20 secondes)
+
+                    // Attend quelques secondes pour laisser le serveur s'arrêter proprement
+                    setTimeout(() => {
+                        // Fermer de force la session screen
+                        console.log(`Fermeture de force de la session ${screenName}...`);
+                        exec(`screen -S ${screenName} -X quit`, (err, stdout, stderr) => {
+                            if (err) {
+                                console.error(`Erreur lors de la fermeture de la session : ${stderr}`);
+                                return res.status(500).json({ message: 'Erreur lors de l\'arrêt du serveur' });
+                            } else {
+                                console.log(`Session ${screenName} fermée avec succès.`);
+                                return res.status(200).json({ message: 'Fermeture du serveur réussi.' });
                             }
-                            console.log(`stdout: ${stdout}`);
-                            console.error(`stderr: ${stderr}`);
-                            // Après que le serveur soit arrêté, on fait un entrée puis on ferme le screen
-                            exec(`screen -S ${screenName} -X stuff '^M'`, (error, stdout, stderr) => {
-                                if (error) {
-                                    console.error(`Erreur lors de l'arrêt du screen : ${error}`);
-                                    return res.status(500).json({ error: 'Erreur lors de l\'arrêt du screen' });
-                                }
-                                console.log(`stdout: ${stdout}`);
-                                console.error(`stderr: ${stderr}`);
-                                return res.status(200).json({ message: 'Serveur arrêté' });
-                            });
-                            return res.status(200).json({ message: 'Serveur arrêté' });
                         });
-                    } else {
-                        exec(`screen -S ${screenName} -X quit`, (error, stdout, stderr) => {
-                            if (error) {
-                                console.error(`Erreur lors de l'arrêt du serveur : ${error}`);
-                                return res.status(500).json({ error: 'Erreur lors de l\'arrêt du serveur' });
-                            }
-                            console.log(`stdout: ${stdout}`);
-                            console.error(`stderr: ${stderr}`);
-                            return res.status(200).json({ message: 'Serveur arrêté' });
-                        });
-                    }
+                    }, waitTime);
+
                 } else {
-                    console.log(`Le serveur ${data.nom_serv} n'est pas démarré.`);
+                    console.log(`Le serveur ${screenName} n'est pas démarré.`);
                     return res.status(200).json({ message: 'Serveur non démarré' });
                 }
             });

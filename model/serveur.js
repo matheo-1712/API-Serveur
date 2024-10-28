@@ -79,7 +79,7 @@ const Serveur = {
     // Affiche les serveurs Actif par rapport à un jeu
     getServeursActifsByJeu: function (jeu) {
         let data = require('../data/serveurs.json');
-        let serveurs = data.filter(serveur => serveur.jeu == jeu && serveur.actif == true);
+        let serveurs = data.filter(serveur => serveur.jeu.toLowerCase() == jeu.toLowerCase() && serveur.actif == true);
         if (serveurs.length === 0) {
             return { message: 'Aucun serveur actif trouvé pour ce jeu', status: false };
         }
@@ -92,25 +92,25 @@ const Serveur = {
         try {
             // Lire tous les fichiers dans le dossier spécifié avec fs.promises.readdir
             const fichiers = await fs.readdir(dossierStats);
-
+    
             // Filtrer uniquement les fichiers JSON
             const fichiersJson = fichiers.filter(fichier => fichier.endsWith('.json'));
-
+    
             // Parcourir chaque fichier JSON et lire son contenu
             const donneesJoueurs = [];
             for (const fichier of fichiersJson) {
                 const cheminFichier = path.join(dossierStats, fichier);
-
+    
                 // Lire le fichier JSON
                 const contenu = await fs.readFile(cheminFichier, 'utf-8');
-
+    
                 // Convertir le contenu JSON en objet JavaScript
                 const donnees = JSON.parse(contenu);
-
+    
                 // Ajouter les données à un tableau
-                donneesJoueurs.push(donnees);
+                donneesJoueurs.push(...donnees); // Utilisation de l'opérateur de décomposition pour aplatir
             }
-
+    
             // Retourner toutes les données
             return donneesJoueurs;
         } catch (err) {
@@ -150,6 +150,9 @@ const Serveur = {
                 }
             }
 
+            if (donneesJoueurs.length === 0) {
+                return { message: 'Aucune statistique trouvé pour ce serveur', status: false };
+            }
             // Retourner toutes les données
             return donneesJoueurs;
         } catch (err) {
@@ -202,7 +205,7 @@ const Serveur = {
                 return statsJoueursTrouves;
             } else {
                 // Si aucun joueur n'a été trouvé, retourner null ou une indication
-                return null;
+                return { message: 'Aucune statistique trouvé pour ce joueur', status: false };
             }
 
         } catch (err) {

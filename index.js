@@ -5,7 +5,12 @@ const fs = require('fs');
 
 // Lancement de la sauvegarde des statistiques des joueurs
 const savePlayersStats = require('./utils/minecraft/savePlayersStats');
+
+// Démarre la première exécution immédiatement
 savePlayersStats();
+
+// Définit une répétition de la fonction toutes les heures (3600000 ms = 1 heure)
+setInterval(savePlayersStats, 3600000); // 3600000 millisecondes = 1 heure
 
 // Configuration du port d'écoute du serveur
 const port = 3000;
@@ -15,7 +20,7 @@ app.use(express.urlencoded({ extended: true })); // Pour les données URL encod�
 
 // Renvoie si l'API est en ligne
 app.get('/', (req, res) => {
-    res.json({ message: 'API en ligne', status: true});
+    res.json({ message: 'API en ligne', status: true });
 });
 
 // Définition des routes
@@ -34,12 +39,12 @@ app.listen(port, () => {
 });
 
 app.use((req, res) => {
-    res.status(404).json({ error : '404', message: 'Page non trouvée', status: false });
+    res.status(404).json({ error: '404', message: 'Page non trouvée', status: false });
 });
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ error : '500', message: 'Erreur interne', status: false });
+    res.status(500).json({ error: '500', message: 'Erreur interne', status: false });
 });
 
 // En cas de changement dans les JSON redémarre le serveur et sauvegarde les données
